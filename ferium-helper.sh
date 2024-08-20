@@ -6,6 +6,7 @@ show_help() {
     echo "    $0 <source-profile> <target-version> <target-profile>"
     echo "    $0 <source-profile> <target-version>"
     echo "    $0 <target-profile>"
+    echo "    $0 update-only"
     echo ""
     echo "Arguments:"
     echo "    <source-profile>   : Name of the source profile (optional, only if target profile does not exist)"
@@ -18,6 +19,7 @@ show_help() {
     echo "    If only one argument is provided, it performs an upgrade on the specified profile without copying from another profile."
 }
 #endregion
+
 
 #region Initialization
 if [ -n "$3" ]; then
@@ -34,6 +36,7 @@ else
     show_help
     exit 1
 fi
+
 # Determine the run directory and mods directory
 GAME_ROOT="$PWD"
 echo "Game directory: $GAME_ROOT"
@@ -41,14 +44,8 @@ echo "Game directory: $GAME_ROOT"
 # Move to the script's directory
 cd "$(dirname "$0")" || exit 1
 echo "Ferium directory: $PWD"
-
-# Configuration file path
-CONFIG_FILE=~/.config/ferium/config.json
-if [ ! -f "$CONFIG_FILE" ]; then
-    echo "File not found: $CONFIG_FILE"
-    exit 1
-fi
 #endregion
+
 
 #region Check for ferium updates
 # Get the latest version from GitHub
@@ -79,7 +76,21 @@ if [ "$UPDATE_REQUIRED" = true ]; then
     rm $ZIP_FILE_NAME
     echo "Done."
 fi
+
+if [ "$TARGET_PROFILE_NAME" = "update-only" ]; then
+    exit 0
+fi
 #endregion
+
+
+#region Configuration file
+CONFIG_FILE=~/.config/ferium/config.json
+if [ ! -f "$CONFIG_FILE" ]; then
+    echo "File not found: $CONFIG_FILE"
+    exit 1
+fi
+#endregion
+
 
 #region Copy profile data
 # Read profiles from the config file
@@ -117,6 +128,7 @@ if [ -z "$TARGET_PROFILE" ] && [ -n "$SOURCE_PROFILE_NAME" ]; then
 fi
 #endregion
 
+
 #region Shortcuts
 # Symlink config file if not already done
 rm -f ./config.json
@@ -126,6 +138,7 @@ ln -s "$CONFIG_FILE" ./config.json
 rm -f ./_minecraft
 ln -s "$GAME_ROOT" ./_minecraft
 #endregion
+
 
 #region Ferium commands
 # Perform profile switch, configure mods directory, and upgrade

@@ -4,6 +4,7 @@ function Show-Help {
     Write-Host "    $PSCommandPath <source-profile> <target-version> <target-profile>"
     Write-Host "    $PSCommandPath <source-profile> <target-version>"
     Write-Host "    $PSCommandPath <target-profile>"
+    Write-Host "    $PSCommandPath update-only"
     Write-Host ""
     Write-Host "Arguments:"
     Write-Host "    <source-profile>   : Name of the source profile (optional, only if target profile does not exist)"
@@ -76,13 +77,6 @@ Write-Host "Game directory: $GAME_ROOT"
 # Move to the script's directory
 Set-Location -Path (Get-Item -Path $PSCommandPath).DirectoryName
 Write-Host "Ferium directory: $(Get-Location)"
-
-# Configuration file path
-$CONFIG_FILE = "$HOME\.config\ferium\config.json"
-if (-not (Test-Path -Path $CONFIG_FILE)) {
-    Write-Host "File not found: $CONFIG_FILE"
-    exit 1
-}
 #endregion
 
 
@@ -114,6 +108,19 @@ if ($updateRequired) {
     Expand-Archive -Path $zipFileName -DestinationPath . -Force
     Remove-Item -Path $zipFileName
     Write-Host "Done."
+}
+
+if ($TARGET_PROFILE_NAME -eq "update-only") {
+    exit 0
+}
+#endregion
+
+
+#region Configuration file
+$CONFIG_FILE = "$HOME\.config\ferium\config.json"
+if (-not (Test-Path -Path $CONFIG_FILE)) {
+    Write-Host "File not found: $CONFIG_FILE"
+    exit 1
 }
 #endregion
 
@@ -176,7 +183,7 @@ Create-Shortcut -Path ./.minecraft.lnk -Target $GAME_ROOT
 # Perform profile switch, configure mods directory, and upgrade
 .\ferium.exe profile switch $TARGET_PROFILE_NAME
 .\ferium.exe profile configure --output-dir "$($GAME_ROOT)\mods"
-Start-Process powershell "-Command Start-Transcript -Path .\upgrade.log; ./ferium upgrade" -Wait
+Start-Process powershell "-Command Start-Transcript -Path .\upgrade.log; [console]::windowheight=500; ./ferium upgrade" -Wait
 [regex]::Replace((Get-Content .\upgrade.log -Delimiter "This will never appear"), "(\*{22}\r\n.*?\*{22}\r\n(.*?\r\n)?|PS>.*)", "", "Singleline") `
     -replace "\u2713", "+" `
     -replace "\u00d7", "-"
