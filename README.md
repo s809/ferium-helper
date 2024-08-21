@@ -22,6 +22,7 @@ If you have something to improve, feel free to create pull requests.
 5. Go to Edit -> Settings -> Custom commands, and add pre-launch command:
    - Linux: `sh -c "../../../ferium-helper/ferium-helper.sh '<target-profile>'"`
    - Windows: `powershell -Command ..\..\..\ferium-helper\ferium-helper.ps1 '<target-profile>'`
+6. (Optional) Create a shortcut to `ferium-helper` folder to any convenient place.
 
 ## Profile migration
 This script can migrate mod list and their settings, game settings and server list.
