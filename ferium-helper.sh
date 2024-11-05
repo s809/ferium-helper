@@ -1,5 +1,11 @@
 #!/bin/bash
 
+####################
+### UNMAINTAINED ###
+####################
+
+set -e
+
 #region Help
 show_help() {
     echo "Usage:"

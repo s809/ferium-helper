@@ -1,3 +1,5 @@
+$ErrorActionPreference = "Stop"
+
 #region Help
 function Show-Help {
     Write-Host "Usage:"
@@ -170,12 +172,12 @@ if (-not $TARGET_PROFILE -and $SOURCE_PROFILE_NAME) {
 
 #region Shortcuts
 # Create config shortcut file
-Remove-Item -Path ./config.json.lnk -Force -ErrorAction Ignore
-Create-Shortcut -Path ./config.json.lnk -Target $CONFIG_FILE
+Remove-Item -Path "$(Get-Location)\config.json.lnk" -Force -ErrorAction Ignore
+Create-Shortcut -Path "$(Get-Location)\config.json.lnk" -Target "$CONFIG_FILE"
 
 # Create game directory shortcut
-Remove-Item -Path ./.minecraft.lnk -Force -ErrorAction Ignore
-Create-Shortcut -Path ./.minecraft.lnk -Target $GAME_ROOT
+Remove-Item -Path "$(Get-Location)\.minecraft.lnk" -Force -ErrorAction Ignore
+Create-Shortcut -Path "$(Get-Location)\.minecraft.lnk" -Target "$GAME_ROOT"
 #endregion
 
 
@@ -183,8 +185,20 @@ Create-Shortcut -Path ./.minecraft.lnk -Target $GAME_ROOT
 # Perform profile switch, configure mods directory, and upgrade
 .\ferium.exe profile switch $TARGET_PROFILE_NAME
 .\ferium.exe profile configure --output-dir "$($GAME_ROOT)\mods"
-Start-Process powershell "-Command Start-Transcript -Path .\upgrade.log; [console]::windowheight=500; ./ferium upgrade" -Wait
-[regex]::Replace((Get-Content .\upgrade.log -Delimiter "This will never appear"), "(\*{22}\r\n.*?\*{22}\r\n(.*?\r\n)?|PS>.*)", "", "Singleline") `
-    -replace "\u2713", "+" `
-    -replace "\u00d7", "-"
+
+$UPGRADE_ATTEMPTS = 0
+do {
+    if ($UPGRADE_ATTEMPTS -gt 4) {
+        Write-Host "Failed to upgrade after $UPGRADE_ATTEMPTS attempts."
+        exit 1
+    }
+    $UPGRADE_ATTEMPTS++
+
+    Start-Process powershell "-Command Start-Transcript -Path .\upgrade.log; [console]::windowheight=500; ./ferium upgrade" -Wait
+    $UPGRADE_OUTPUT = [regex]::Replace((Get-Content .\upgrade.log -Delimiter "This will never appear"), "(\*{22}\r\n.*?\*{22}\r\n(.*?\r\n)?|PS>.*)", "", "Singleline") `
+        -replace "\u2713", "+" `
+        -replace "\u00d7", "-"
+    Write-Host $UPGRADE_OUTPUT
+} while ($UPGRADE_OUTPUT.Contains("error sending request"))
+
 #endregion
