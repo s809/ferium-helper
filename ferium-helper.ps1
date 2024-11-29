@@ -199,6 +199,11 @@ do {
         -replace "\u2713", "+" `
         -replace "\u00d7", "-"
     Write-Host $UPGRADE_OUTPUT
-} while ($UPGRADE_OUTPUT.Contains("error sending request"))
+
+    if ($UPGRADE_OUTPUT.Contains("(404")) {
+        Write-Host "Detected removed mods, aborting."
+        exit 1
+    }
+} while ($UPGRADE_OUTPUT.Contains("error sending request") -or $UPGRADE_OUTPUT.Contains("HTTP status"))
 
 #endregion
