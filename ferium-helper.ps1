@@ -181,6 +181,13 @@ Create-Shortcut -Path "$(Get-Location)\.minecraft.lnk" -Target "$GAME_ROOT"
 #endregion
 
 
+#region Delete user-added mods to reload them
+$userFiles = Get-ChildItem -Path "$GAME_ROOT\mods\user" -File | Select-Object -ExpandProperty Name
+Write-Host "Deleting files: $userFiles"
+Get-ChildItem -Path "$GAME_ROOT\mods" -File | Where-Object { $_.Name -in $userFiles } | Remove-Item
+#endregion
+
+
 #region Ferium commands
 # Perform profile switch, configure mods directory, and upgrade
 .\ferium.exe profile switch $TARGET_PROFILE_NAME
@@ -205,5 +212,4 @@ do {
         exit 1
     }
 } while ($UPGRADE_OUTPUT.Contains("error sending request") -or $UPGRADE_OUTPUT.Contains("HTTP status"))
-
 #endregion
